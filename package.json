@@ -1,0 +1,23 @@
+{
+    "name": "@digiworld/digichat-js",
+    "version": "1.0.0",
+    "description": "Node.js client for DigiChat WhatsApp API",
+    "license": "MIT",
+    "type": "commonjs",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsc -w"
+    },
+    "dependencies": {
+        "axios": "^1.7.2"
+    },
+    "devDependencies": {
+        "@types/node": "^22.5.0",
+        "typescript": "^5.5.4"
+    }
+}
