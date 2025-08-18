@@ -1,43 +1,139 @@
-# @digiworld/digichat-js
+# digichat-js
 
-Node.js/TypeScript client for the DigiChat WhatsApp API.
+Node.js client SDK for the [DigiChat WhatsApp API](https://chat.digiworld-dev.com).
 
-## Install
+
+---
+
+## 📦 Installation
+
 ```bash
-npm i @digiworld/digichat-js
-# or: pnpm add @digiworld/digichat-js
+npm install digichat-js
+# or
+yarn add digichat-js
 ```
-## Quick start
+
+---
+
+## 🚀 Quick Start
+
 ```js
-import DigiChat from "@digiworld/digichat-js";
+const { DigiChat } = require("digichat-js");
 
 const client = new DigiChat({
-  token: process.env.DIGICHAT_API_TOKEN!,
-  secret: process.env.DIGICHAT_API_SECRET!,
-
+  token: process.env.DIGICHAT_API_TOKEN,   // token provided in your panel
+  secret: process.env.DIGICHAT_API_SECRET // secret key used for HMAC signing
 });
 
-const run = async () => {
+(async () => {
+  // Ping API
   console.log(await client.ping());
-  console.log(await client.getStatus());              // { success: true, state: "CONNECTED", ... }
-  // const png = await client.getQrImage();           // Buffer with PNG QR
-  const sent = await client.sendMessage("963912345678", "Hello from Node!");
-  console.log(sent);                                  // { success: true, message_id: "...", ... }
-};
-run().catch(console.error);
+
+  // Get session status
+  console.log(await client.getStatus());
+
+  // Send a WhatsApp message
+  const result = await client.sendMessage("963912345678", "Hello from Node!");
+  console.log(result);
+})();
 ```
 
+---
 
-## CommonJS
+## 🔑 Authentication
+
+All requests require:
+
+- `token` → passed in the URL path
+- `secret` → used to generate an **HMAC-SHA256** signature for `sendMessage`
+
+For `sendMessage`, the SDK automatically sets these headers:
+
+- `X-API-Timestamp`
+- `X-API-Signature`
+
+---
+
+## 📚 API Methods
+
+### `ping()`
+Check API availability.
+
 ```js
-const { DigiChat } = require("@digiworld/digichat-js");
+await client.ping();
+// => "pong"
 ```
 
-## Environment
+---
 
-<code>DIGICHAT_API_TOKEN</code> – token in URL path
+### `getStatus()`
+Get WhatsApp session status.
 
-<code>DIGICHAT_API_SECRET</code> – HMAC secret used for sendMessage
+```js
+await client.getStatus();
+/*
+{
+  success: true,
+  state: "CONNECTED", // or "DISCONNECTED", "QR", ...
+  message: "Session is connected"
+}
+*/
+```
+
+---
+
+### `terminate()`
+Terminate the current WhatsApp session.
+
+```js
+await client.terminate();
+```
+
+---
+
+### `getQr()`
+Get QR code data for scanning.
+
+```js
+await client.getQr();
+```
+
+---
+
+### `getQrImage()`
+Get QR code as a PNG buffer.
+
+```js
+const png = await client.getQrImage();
+// Save to file if needed:
+require("fs").writeFileSync("qr.png", png);
+```
+
+---
+
+### `sendMessage(phone, message)`
+Send a WhatsApp message.
+
+```js
+await client.sendMessage("963912345678", "Hello from DigiChat!");
+/*
+{
+  success: true,
+  message_id: "...",
+  message: "Message sent successfully"
+}
+*/
+```
+
+> **Note**: Phone numbers must be in **digits only**, without `+`  
+> Example: `9639XXXXXXXX` ✅
 
 
-Unofficial WhatsApp access. Accounts can be banned. Use at your own risk.
+---
+⚠️ **Disclaimer**: DigiChat uses **unofficial access** to WhatsApp. Your account may get banned. Use at your own risk.
+
+---
+
+## 📄 License
+
+MIT © [Inferno-Team](https://github.com/Inferno-Team)
