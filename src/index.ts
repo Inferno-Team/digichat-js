@@ -7,8 +7,7 @@ import type {
     QrResponse
 } from "./types";
 
-// const DEFAULT_BASE = "https://whatsapp-api.test";
-const DEFAULT_BASE = "https://chat.digiworld-dev.com";
+const DEFAULT_BASE = "https://digichat.digiworld-dev.com";
 
 export class DigiChat {
     private token: string;
@@ -36,8 +35,10 @@ export class DigiChat {
     }
 
     /** GET /api/whatsapp/{token}/terminate */
-    async terminate(): Promise<{ success: boolean; message: string }> {
-        const { data } = await this.http.get(`/api/whatsapp/${this.token}/terminate`);
+    async terminate({ withDeletion = false }): Promise<{ success: boolean; message: string }> {
+        const { data } = await this.http.post(`/api/whatsapp/${this.token}/terminate`, {
+            withDeletion
+        });
         return data;
     }
 
