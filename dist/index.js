@@ -6,8 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DigiChat = void 0;
 const node_crypto_1 = __importDefault(require("node:crypto"));
 const http_1 = require("./http");
-// const DEFAULT_BASE = "https://whatsapp-api.test";
-const DEFAULT_BASE = "https://chat.digiworld-dev.com";
+const form_data_1 = __importDefault(require("form-data"));
+const node_fs_1 = __importDefault(require("node:fs"));
+// const DEFAULT_BASE = "https://stagging.digichat.digiworld-dev.com";
+const DEFAULT_BASE = "http://127.0.0.1:8000";
 class DigiChat {
     token;
     secret;
@@ -30,8 +32,10 @@ class DigiChat {
         return data;
     }
     /** GET /api/whatsapp/{token}/terminate */
-    async terminate() {
-        const { data } = await this.http.get(`/api/whatsapp/${this.token}/terminate`);
+    async terminate({ withDeletion = false }) {
+        const { data } = await this.http.post(`/api/whatsapp/${this.token}/terminate`, {
+            withDeletion
+        });
         return data;
     }
     /** GET /api/whatsapp/{token}/qr  (returns QR code data) */
@@ -68,6 +72,39 @@ class DigiChat {
                 "Content-Type": "application/json"
             }
         });
+        return data;
+    }
+    /**
+     * POST /api/whatsapp/{token}/sendMedia
+     * `X-API-Timestamp`: Unix ms timestamp
+     * `X-API-Signature`: HMAC-SHA256(timestamp + token + requestBody) using API secret
+     * Form fields: phone, media (file), caption (optional)
+     */
+    async sendMedia(params) {
+        const { phone, media, caption, filename } = params;
+        if (!/^[0-9]{10,15}$/.test(phone)) {
+            throw new Error("phone must be digits only, E.164 without '+', e.g. 9639XXXXXXXX");
+        }
+        const form = new form_data_1.default();
+        form.append("phone", phone);
+        if (caption)
+            form.append("caption", caption);
+        if (Buffer.isBuffer(media)) {
+            form.append("media", media, filename || "media");
+        }
+        else {
+            form.append("media", node_fs_1.default.createReadStream(media), filename || undefined);
+        }
+        // For signature, use empty string for requestBody to match Postman for multipart
+        const timestamp = Date.now().toString();
+        const payload = timestamp + this.token + "";
+        const signature = node_crypto_1.default.createHmac("sha256", this.secret).update(payload).digest("hex");
+        const headers = {
+            ...form.getHeaders(),
+            "X-API-Timestamp": timestamp,
+            "X-API-Signature": signature
+        };
+        const { data } = await this.http.post(`/api/whatsapp/${this.token}/sendMedia`, form, { headers });
         return data;
     }
 }

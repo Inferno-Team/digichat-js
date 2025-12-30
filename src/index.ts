@@ -6,8 +6,10 @@ import type {
     SendMessageResponse,
     QrResponse
 } from "./types";
+import FormData from "form-data";
+import fs from "node:fs";
 
-const DEFAULT_BASE = "https://digichat.digiworld-dev.com";
+const DEFAULT_BASE = "https://stagging.digichat.digiworld-dev.com";
 
 export class DigiChat {
     private token: string;
@@ -84,6 +86,47 @@ export class DigiChat {
             }
         );
 
+        return data as SendMessageResponse;
+    }
+
+    /**
+     * POST /api/whatsapp/{token}/sendMedia
+     * `X-API-Timestamp`: Unix ms timestamp
+     * `X-API-Signature`: HMAC-SHA256(timestamp + token + requestBody) using API secret
+     * Form fields: phone, media (file), caption (optional)
+     */
+    async sendMedia(params: {
+        phone: string;
+        media: string | Buffer; // file path or Buffer
+        caption?: string;
+        filename?: string; // optional override for filename
+    }): Promise<SendMessageResponse> {
+        const { phone, media, caption, filename } = params;
+        if (!/^[0-9]{10,15}$/.test(phone)) {
+            throw new Error("phone must be digits only, E.164 without '+', e.g. 9639XXXXXXXX");
+        }
+        const form = new FormData();
+        form.append("phone", phone);
+        if (caption) form.append("caption", caption);
+        if (Buffer.isBuffer(media)) {
+            form.append("media", media, filename || "media");
+        } else {
+            form.append("media", fs.createReadStream(media), filename || undefined);
+        }
+        // For signature, use empty string for requestBody to match Postman for multipart
+        const timestamp = Date.now().toString();
+        const payload = timestamp + this.token + "";
+        const signature = crypto.createHmac("sha256", this.secret).update(payload).digest("hex");
+        const headers = {
+            ...form.getHeaders(),
+            "X-API-Timestamp": timestamp,
+            "X-API-Signature": signature
+        };
+        const { data } = await this.http.post(
+            `/api/whatsapp/${this.token}/sendMedia`,
+            form,
+            { headers }
+        );
         return data as SendMessageResponse;
     }
 }

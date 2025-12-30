@@ -10,7 +10,9 @@ export declare class DigiChat {
     /** GET /api/whatsapp/{token}/status */
     getStatus(): Promise<StatusResponse>;
     /** GET /api/whatsapp/{token}/terminate */
-    terminate(): Promise<{
+    terminate({ withDeletion }: {
+        withDeletion?: boolean | undefined;
+    }): Promise<{
         success: boolean;
         message: string;
     }>;
@@ -25,5 +27,17 @@ export declare class DigiChat {
      * Body: { phone: "9639xxxxxxxx", message: "..." }
      */
     sendMessage(phone: string, message: string): Promise<SendMessageResponse>;
+    /**
+     * POST /api/whatsapp/{token}/sendMedia
+     * `X-API-Timestamp`: Unix ms timestamp
+     * `X-API-Signature`: HMAC-SHA256(timestamp + token + requestBody) using API secret
+     * Form fields: phone, media (file), caption (optional)
+     */
+    sendMedia(params: {
+        phone: string;
+        media: string | Buffer;
+        caption?: string;
+        filename?: string;
+    }): Promise<SendMessageResponse>;
 }
 export default DigiChat;
