@@ -8,8 +8,7 @@ const node_crypto_1 = __importDefault(require("node:crypto"));
 const http_1 = require("./http");
 const form_data_1 = __importDefault(require("form-data"));
 const node_fs_1 = __importDefault(require("node:fs"));
-// const DEFAULT_BASE = "https://stagging.digichat.digiworld-dev.com";
-const DEFAULT_BASE = "http://127.0.0.1:8000";
+const DEFAULT_BASE = "https://stagging.digichat.digiworld-dev.com";
 class DigiChat {
     token;
     secret;
