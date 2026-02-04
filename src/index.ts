@@ -9,7 +9,7 @@ import type {
 import FormData from "form-data";
 import fs from "node:fs";
 
-const DEFAULT_BASE = "https://stagging.digichat.digiworld-dev.com";
+const DEFAULT_BASE = "https://digichat.digiworld-dev.com";
 
 export class DigiChat {
     private token: string;
